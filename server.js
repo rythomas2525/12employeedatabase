@@ -1,7 +1,8 @@
-var mysql = require("mysql");
-var inquirer = require("inquirer");
+const mysql = require("mysql");
+const inquirer = require("inquirer");
+const cTable = require('console.table')
 
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
     host: "localhost",
 
     // Your port; if not 3306
@@ -12,7 +13,7 @@ var connection = mysql.createConnection({
 
 
     password: process.env.MYSQL_PASSWORD,
-    database: "top_songsDB"
+    database: "employee_trackerDB"
 });
 
 connection.connect(function (err) {
@@ -39,20 +40,29 @@ function runSearch() {
         })
         .then(function (answer) {
             switch (answer.action) {
-                case "Find songs by artist":
-                    artistSearch();
+                case "View all employees":
+                    viewEmployees();
                     break;
 
-                case "Find all artists who appear more than once":
-                    multiSearch();
+                case "View all employees by department":
+                    viewEmployeesByDep();
                     break;
 
-                case "Find data within a specific range":
-                    rangeSearch();
+                case "View all employees by manager":
+                    viewEmployeesByManager();
                     break;
 
-                case "Search for a specific song":
-                    songSearch();
+                case "add employee":
+                    addEmployee();
+                    break;
+                case "remove employee":
+                    removeEmployee();
+                    break;
+                case "update employee role":
+                    updateRole();
+                    break;
+                case "update employee's manager":
+                    updateManager();
                     break;
 
                 case "exit":
@@ -62,27 +72,22 @@ function runSearch() {
         });
 }
 
-function artistSearch() {
-    inquirer
-        .prompt({
-            name: "artist",
-            type: "input",
-            message: "What artist would you like to search for?"
-        })
-        .then(function (answer) {
-            var query = "SELECT position, song, year FROM top5000 WHERE ?";
-            connection.query(query, { artist: answer.artist }, function (err, res) {
-                if (err) throw err;
-                for (var i = 0; i < res.length; i++) {
-                    console.log("Position: " + res[i].position + " || Song: " + res[i].song + " || Year: " + res[i].year);
-                }
-                runSearch();
-            });
-        });
+function viewEmployees() {
+
+    var query = "SELECT id, first_name, last_name FROM employee";
+    connection.query(query, function (err, res) {
+        console.log("blah")
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
+        }
+        runSearch();
+    });
 }
 
-function multiSearch() {
-    var query = "SELECT artist FROM top5000 GROUP BY artist HAVING count(*) > 1";
+
+function viewEmployeesByDep() {
+    var query = "SELECT artist FROM top5000 GROUP BY department HAVING count(*) > 1";
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
@@ -92,7 +97,7 @@ function multiSearch() {
     });
 }
 
-function rangeSearch() {
+function viewEmployeesByManager() {
     inquirer
         .prompt([
             {
@@ -139,7 +144,84 @@ function rangeSearch() {
         });
 }
 
-function songSearch() {
+function addEmployee() {
+    inquirer
+        .prompt({
+            name: "employee",
+            type: "input",
+            message: "What is the Employees First Name?"
+        })
+        .then(function (answer) {
+            console.log(answer.employee);
+            connection.query("INSERT INTO  employee (first_name) VALUES (?)", { employee: answer.employee }, function (err, res) {
+                if (err) throw err;
+                console.log(
+                    "Position: " +
+                    res[0].position +
+                    " || Song: " +
+                    res[0].song +
+                    " || Artist: " +
+                    res[0].artist +
+                    " || Year: " +
+                    res[0].year
+                );
+                runSearch();
+            });
+        });
+}
+
+function removeEmployee() {
+    inquirer
+        .prompt({
+            name: "song",
+            type: "input",
+            message: "What song would you like to look for?"
+        })
+        .then(function (answer) {
+            console.log(answer.song);
+            connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
+                if (err) throw err;
+                console.log(
+                    "Position: " +
+                    res[0].position +
+                    " || Song: " +
+                    res[0].song +
+                    " || Artist: " +
+                    res[0].artist +
+                    " || Year: " +
+                    res[0].year
+                );
+                runSearch();
+            });
+        });
+}
+
+function updateRole() {
+    inquirer
+        .prompt({
+            name: "song",
+            type: "input",
+            message: "What song would you like to look for?"
+        })
+        .then(function (answer) {
+            console.log(answer.song);
+            connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
+                if (err) throw err;
+                console.log(
+                    "Position: " +
+                    res[0].position +
+                    " || Song: " +
+                    res[0].song +
+                    " || Artist: " +
+                    res[0].artist +
+                    " || Year: " +
+                    res[0].year
+                );
+                runSearch();
+            });
+        });
+}
+function updateManager() {
     inquirer
         .prompt({
             name: "song",
