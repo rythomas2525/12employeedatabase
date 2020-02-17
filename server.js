@@ -87,7 +87,7 @@ function viewEmployees() {
 
 
 function viewEmployeesByDep() {
-    var query = "SELECT artist FROM top5000 GROUP BY department HAVING count(*) > 1";
+    var query = "SELECT * FROM Employee GROUP BY department";
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
@@ -128,43 +128,41 @@ function viewEmployeesByManager() {
             connection.query(query, [answer.start, answer.end], function (err, res) {
                 if (err) throw err;
                 for (var i = 0; i < res.length; i++) {
-                    console.log(
-                        "Position: " +
-                        res[i].position +
-                        " || Song: " +
-                        res[i].song +
-                        " || Artist: " +
-                        res[i].artist +
-                        " || Year: " +
-                        res[i].year
-                    );
+
+                    console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
+
                 }
                 runSearch();
             });
         });
 }
 
+const addEmployeeQuestions = [{
+    name: "first_name",
+    type: "input",
+    message: "What is the Employees First Name?"
+}, {
+    name: "last_name",
+    type: "input",
+    message: "What is the Employees Last Name?"
+}]
+
 function addEmployee() {
     inquirer
-        .prompt({
-            name: "employee",
-            type: "input",
-            message: "What is the Employees First Name?"
-        })
+        .prompt(addEmployeeQuestions)
         .then(function (answer) {
-            console.log(answer.employee);
-            connection.query("INSERT INTO  employee (first_name) VALUES (?)", { employee: answer.employee }, function (err, res) {
+            console.log(answer.first_name);
+            console.log(answer.last_name);
+
+
+            // const empInfo = { first_name: answer.first_name, last_name: answer.last_name }
+
+            connection.query("INSERT INTO  employee (first_name, last_name) VALUES (?, ?)", [answer.first_name, answer.last_name], function (err, res) {
                 if (err) throw err;
-                console.log(
-                    "Position: " +
-                    res[0].position +
-                    " || Song: " +
-                    res[0].song +
-                    " || Artist: " +
-                    res[0].artist +
-                    " || Year: " +
-                    res[0].year
-                );
+                console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
+
+
+
                 runSearch();
             });
         });
