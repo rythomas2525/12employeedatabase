@@ -69,17 +69,18 @@ function runSearch() {
                     connection.end();
                     break;
             }
+
         });
 }
 
 function viewEmployees() {
 
-    var query = "SELECT id, first_name, last_name FROM employee";
+    var query = "SELECT * FROM employee";
     connection.query(query, function (err, res) {
         console.log("blah")
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
+            console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + " || Role ID: " + res[i].role_id);
         }
         runSearch();
     });
@@ -87,8 +88,8 @@ function viewEmployees() {
 
 
 function viewEmployeesByDep() {
-    var query = "SELECT * FROM Employee GROUP BY department";
-    connection.query(query, function (err, res) {
+    var query = "SELECT * FROM Employee WHERE department = '?'";
+    connection.query(query, [answer.employee], function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
             console.log(res[i].artist);
@@ -145,7 +146,20 @@ const addEmployeeQuestions = [{
     name: "last_name",
     type: "input",
     message: "What is the Employees Last Name?"
-}]
+}, {
+    name: "role",
+    type: "list",
+    message: "What role does the employee have",
+    choices: [
+        "Software Engineer",
+        "Sales Lead",
+        "Sales Person",
+        "Lead Engineer",
+        "Acount Manager",
+        "Accountant",
+    ]
+},
+]
 
 function addEmployee() {
     inquirer
@@ -155,9 +169,9 @@ function addEmployee() {
             console.log(answer.last_name);
 
 
-            // const empInfo = { first_name: answer.first_name, last_name: answer.last_name }
 
-            connection.query("INSERT INTO  employee (first_name, last_name) VALUES (?, ?)", [answer.first_name, answer.last_name], function (err, res) {
+
+            connection.query("INSERT INTO  employee (first_name, last_name, role_id) VALUES (?, ?, ?)", [answer.first_name, answer.last_name, answer.role], function (err, res) {
                 if (err) throw err;
                 console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
 
@@ -171,24 +185,21 @@ function addEmployee() {
 function removeEmployee() {
     inquirer
         .prompt({
-            name: "song",
-            type: "input",
-            message: "What song would you like to look for?"
+            name: "remove",
+            type: "list",
+            message: "What employee would you like to remove?",
+            choices: [
+                "Ryan"
+
+            ]
         })
         .then(function (answer) {
-            console.log(answer.song);
-            connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
+
+            connection.query("DELETE FROM employee WHERE first_name = ?", answer.remove, function (err, res) {
                 if (err) throw err;
-                console.log(
-                    "Position: " +
-                    res[0].position +
-                    " || Song: " +
-                    res[0].song +
-                    " || Artist: " +
-                    res[0].artist +
-                    " || Year: " +
-                    res[0].year
-                );
+                for (var i = 0; i < res.length; i++) {
+                    console.log("deleted " + answer.remove + " ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + " || Role ID: " + res[i].role_id);
+                }
                 runSearch();
             });
         });

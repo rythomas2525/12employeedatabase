@@ -31,11 +31,16 @@ SELECT * FROM role;
 SELECT * FROM employee;
 
 
-INSERT INTO department (flavor, price, quantity)
-VALUES ("vanilla", 2.50, 100);
+INSERT INTO department (name)
+VALUES ("hr", );
 
-INSERT INTO products (flavor, price, quantity)
-VALUES ("chocolate", 3.10, 120);
+INSERT INTO  employee (first_name, last_name)
+VALUES ("ryan", "thomas");
 
-INSERT INTO products (flavor, price, quantity)
-VALUES ("strawberry", 3.25, 75);
+SELECT  * from department
+JOIN role on role.department_id = department.id ;
+
+select * from role
+JOIN employee on employee.role_id = role.id;
+
+DELETE FROM employee WHERE first_name = ""
