@@ -2,6 +2,8 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require('console.table')
 
+
+
 const connection = mysql.createConnection({
     host: "localhost",
 
@@ -22,6 +24,7 @@ connection.connect(function (err) {
 });
 
 function runSearch() {
+    console.log('\n');
     inquirer
         .prompt({
             name: "action",
@@ -73,11 +76,13 @@ function runSearch() {
 function viewEmployees() {
 
     var query = "SELECT * FROM employee ";
+    // var query = "SELECT employee.id, first_name, last_name, title, salary, name FROM employee " +
+    //     "LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id "
     connection.query(query, function (err, res) {
 
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + " || Role ID: " + res[i].role_id);
+            console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + " || Role ID: " + res[i].role_id + " || Manager ID: " + res[i].manager_id);
 
         }
         runSearch();
@@ -99,63 +104,67 @@ function viewDep() {
 
 
 
-const addEmployeeQuestions = [{
-    name: "first_name",
-    type: "input",
-    message: "What is the Employees First Name?"
-}, {
-    name: "last_name",
-    type: "input",
-    message: "What is the Employees Last Name?"
-}, {
-    name: "role",
-    type: "list",
-    message: "What role does the employee have",
-    choices: [
-        "Software Engineer",
-        "Senior Engineer",
-        "Sales Person",
-        "Sales Lead",
-        "Lead Accountant",
-        "Accountant"
-    ]
-},
-]
-
 function addEmployee() {
 
+
+    var roleArray = []
     var roleID = ""
 
+    connection.query("SELECT * FROM role;", function (err, res) {
+        if (err) throw err;
+
+        for (let i = 0; i < res.length; i++) {
+            roleArray.push(res[i].title);
 
 
-    inquirer
-        .prompt(addEmployeeQuestions)
-        .then(function (answer) {
+        }
+
+        const addEmployeeQuestions = [{
+            name: "first_name",
+            type: "input",
+            message: "What is the Employees First Name?"
+        }, {
+            name: "last_name",
+            type: "input",
+            message: "What is the Employees Last Name?"
+        }, {
+            name: "role",
+            type: "list",
+            message: "What role does the employee have",
+            choices: roleArray
+        },
+        ]
+
+
+        inquirer
+            .prompt(addEmployeeQuestions)
+            .then(function (answer) {
 
 
 
-            connection.query("SELECT id FROM role WHERE title=?", [answer.role], function (err, res) {
-                if (err) throw err;
-
-
-
-                roleID = res[0].id
-
-
-
-
-                connection.query("INSERT INTO  employee (first_name, last_name, role_id) VALUES (?, ?, ?)", [answer.first_name, answer.last_name, roleID], function (err, res) {
-
+                connection.query("SELECT id FROM role WHERE title=?", [answer.role], function (err, res) {
                     if (err) throw err;
-                    console.log(answer.first_name + " " + answer.last_name + " added!")
-
-                    runSearch();
-
-                });
-            })
 
 
-        });
+
+                    roleID = res[0].id
+
+
+
+
+                    connection.query("INSERT INTO  employee (first_name, last_name, role_id) VALUES (?, ?, ?)", [answer.first_name, answer.last_name, roleID], function (err, res) {
+
+                        if (err) throw err;
+                        console.log(answer.first_name + " " + answer.last_name + " added!")
+
+                        runSearch();
+
+                    });
+                })
+
+
+            });
+    })
 }
 
 function removeEmployee() {
@@ -209,6 +218,13 @@ function addRole() {
         if (err) throw err;
 
         var depArray = []
+
+
+        for (let i = 0; i < res.length; i++) {
+            depArray.push(res[i].name);
+
+
+        }
         const addRoleQuestions = [{
             name: "role",
             type: "input",
@@ -226,11 +242,7 @@ function addRole() {
         }]
 
 
-        for (let i = 0; i < res.length; i++) {
-            depArray.push(res[i].department);
-            console.log(res[i].department);
 
-        }
 
         inquirer
             .prompt(addRoleQuestions)
@@ -239,14 +251,15 @@ function addRole() {
                 var depID = "";
 
                 for (let i = 0; i < depArray.length; i++) {
-                    if (res[i].department === answer.department) {
+                    if (res[i].name === answer.department) {
                         depID = res[i].id;
                     }
                 };
 
-                connection.query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)", [answer.role, answer.salary, depID], function (err, res) {
+                connection.query("INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)", [answer.role, answer.salary, depID], function (err, res) {
                     if (err) throw err;
-                    console.log(res)
+                    console.log(answer.role + " added!")
+
 
                     runSearch();
 
