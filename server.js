@@ -29,12 +29,10 @@ function runSearch() {
             message: "What would you like to do?",
             choices: [
                 "View all employees",
-                "View all employees by department",
-                "View all employees by manager",
+                "View departments",
                 "add employee",
                 "remove employee",
                 "update employee role",
-                "update employee's manager",
                 "exit"
             ]
         })
@@ -44,13 +42,10 @@ function runSearch() {
                     viewEmployees();
                     break;
 
-                case "View all employees by department":
-                    viewEmployeesByDep();
+                case "View departments":
+                    viewDep();
                     break;
 
-                case "View all employees by manager":
-                    viewEmployeesByManager();
-                    break;
 
                 case "add employee":
                     addEmployee();
@@ -75,68 +70,32 @@ function runSearch() {
 
 function viewEmployees() {
 
-    var query = "SELECT * FROM employee";
+    var query = "SELECT * FROM employee ";
     connection.query(query, function (err, res) {
-        console.log("blah")
+
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
             console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + " || Role ID: " + res[i].role_id);
+
         }
         runSearch();
     });
 }
 
 
-function viewEmployeesByDep() {
-    var query = "SELECT * FROM Employee WHERE department = '?'";
-    connection.query(query, [answer.employee], function (err, res) {
+function viewDep() {
+    console.log("blah")
+    var query = "SELECT * FROM department";
+    connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log(res[i].artist);
+            console.log("ID: " + res[i].id + " || Department: " + res[i].name);
         }
         runSearch();
     });
 }
 
-function viewEmployeesByManager() {
-    inquirer
-        .prompt([
-            {
-                name: "start",
-                type: "input",
-                message: "Enter starting position: ",
-                validate: function (value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                }
-            },
-            {
-                name: "end",
-                type: "input",
-                message: "Enter ending position: ",
-                validate: function (value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                }
-            }
-        ])
-        .then(function (answer) {
-            var query = "SELECT position,song,artist,year FROM top5000 WHERE position BETWEEN ? AND ?";
-            connection.query(query, [answer.start, answer.end], function (err, res) {
-                if (err) throw err;
-                for (var i = 0; i < res.length; i++) {
 
-                    console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
-
-                }
-                runSearch();
-            });
-        });
-}
 
 const addEmployeeQuestions = [{
     name: "first_name",
@@ -152,33 +111,48 @@ const addEmployeeQuestions = [{
     message: "What role does the employee have",
     choices: [
         "Software Engineer",
-        "Sales Lead",
+        "Senior Engineer",
         "Sales Person",
-        "Lead Engineer",
-        "Acount Manager",
-        "Accountant",
+        "Sales Lead",
+        "Lead Accountant",
+        "Accountant"
     ]
 },
 ]
 
 function addEmployee() {
+
+    var roleID = ""
+
+
+
     inquirer
         .prompt(addEmployeeQuestions)
         .then(function (answer) {
-            console.log(answer.first_name);
-            console.log(answer.last_name);
 
 
 
-
-            connection.query("INSERT INTO  employee (first_name, last_name, role_id) VALUES (?, ?, ?)", [answer.first_name, answer.last_name, answer.role], function (err, res) {
+            connection.query("SELECT id FROM role WHERE title=?", [answer.role], function (err, res) {
                 if (err) throw err;
-                console.log("ID: " + res[i].id + " || First Name: " + res[i].first_name + " || Last Name: " + res[i].last_name + "Role ID: " + res[i].role_id);
 
 
 
-                runSearch();
-            });
+                roleID = res[0].id
+
+
+
+
+                connection.query("INSERT INTO  employee (first_name, last_name, role_id) VALUES (?, ?, ?)", [answer.first_name, answer.last_name, roleID], function (err, res) {
+
+                    if (err) throw err;
+                    console.log(answer.first_name + " " + answer.last_name + " added!")
+
+                    runSearch();
+
+                });
+            })
+
+
         });
 }
 
@@ -230,28 +204,6 @@ function updateRole() {
             });
         });
 }
-function updateManager() {
-    inquirer
-        .prompt({
-            name: "song",
-            type: "input",
-            message: "What song would you like to look for?"
-        })
-        .then(function (answer) {
-            console.log(answer.song);
-            connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
-                if (err) throw err;
-                console.log(
-                    "Position: " +
-                    res[0].position +
-                    " || Song: " +
-                    res[0].song +
-                    " || Artist: " +
-                    res[0].artist +
-                    " || Year: " +
-                    res[0].year
-                );
-                runSearch();
-            });
-        });
-}
+
+
+// foreign key
