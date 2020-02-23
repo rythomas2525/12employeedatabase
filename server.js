@@ -32,6 +32,8 @@ function runSearch() {
                 "View departments",
                 "add employee",
                 "remove employee",
+                "add role",
+                "add department",
                 "update employee role",
                 "exit"
             ]
@@ -53,11 +55,11 @@ function runSearch() {
                 case "remove employee":
                     removeEmployee();
                     break;
-                case "update employee role":
-                    updateRole();
+                case "add role":
+                    addRole();
                     break;
-                case "update employee's manager":
-                    updateManager();
+                case "add department":
+                    addDep();
                     break;
 
                 case "exit":
@@ -179,30 +181,80 @@ function removeEmployee() {
         });
 }
 
-function updateRole() {
+function addDep() {
     inquirer
         .prompt({
-            name: "song",
+            name: "department",
             type: "input",
-            message: "What song would you like to look for?"
+            message: "What department would you like to add?"
         })
         .then(function (answer) {
-            console.log(answer.song);
-            connection.query("SELECT * FROM top5000 WHERE ?", { song: answer.song }, function (err, res) {
-                if (err) throw err;
-                console.log(
-                    "Position: " +
-                    res[0].position +
-                    " || Song: " +
-                    res[0].song +
-                    " || Artist: " +
-                    res[0].artist +
-                    " || Year: " +
-                    res[0].year
-                );
+            connection.query("INSERT INTO department (name) VALUES (?);", [answer.department], function (err, res) {
+                if (err) throw err
+                console.log(answer.department + " was added")
                 runSearch();
+            })
+        })
+}
+
+
+
+
+
+
+function addRole() {
+
+
+    connection.query("SELECT * from department;", function (err, res) {
+        if (err) throw err;
+
+        var depArray = []
+        const addRoleQuestions = [{
+            name: "role",
+            type: "input",
+            message: "What role are you adding?"
+        }, {
+            name: "salary",
+            type: "input",
+            message: "What is the salary?"
+        }, {
+            name: "department",
+            type: "list",
+            message: "What department is this role in?",
+            choices: depArray
+
+        }]
+
+
+        for (let i = 0; i < res.length; i++) {
+            depArray.push(res[i].department);
+            console.log(res[i].department);
+
+        }
+
+        inquirer
+            .prompt(addRoleQuestions)
+            .then(function (answer) {
+
+                var depID = "";
+
+                for (let i = 0; i < depArray.length; i++) {
+                    if (res[i].department === answer.department) {
+                        depID = res[i].id;
+                    }
+                };
+
+                connection.query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)", [answer.role, answer.salary, depID], function (err, res) {
+                    if (err) throw err;
+                    console.log(res)
+
+                    runSearch();
+
+                })
+
+
             });
-        });
+    })
 }
 
 
